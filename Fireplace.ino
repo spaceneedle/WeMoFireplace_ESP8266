@@ -91,9 +91,35 @@ void setup() {
   ticker.detach();
   //keep LED on
   digitalWrite(BUILTIN_LED, LOW);
+    fauxmo.createServer(true);
+    fauxmo.setPort(80);
+    fauxmo.enable(true);
     fauxmo.addDevice("fireplace");
    // fauxmo.addDevice("pixels");
-    fauxmo.onMessage(callback);
+    fauxmo.onSetState([](unsigned char device_id, const char * device_name, bool state, unsigned char value) {
+      Serial.printf("[MAIN] Device #%d (%s) state: %s value: %d\n", device_id, device_name, state ? "ON" : "OFF", value);
+  if (state) {
+    if(fire == false) { 
+    Serial.print("WeMo: ON..");
+    digitalWrite(D1,HIGH);
+    digitalWrite(D3,HIGH);
+    digitalWrite(BUILTIN_LED, LOW);
+    ticker.attach(MOTOR_SEC,motorOff);
+    Serial.println("COMPLETE.");
+    fire = true;
+    fire_timer = fire_timeout + millis();
+  } }
+  else {
+    if(fire == true) { 
+    Serial.print("WeMo: OFF..");
+    digitalWrite(D1,HIGH);
+    digitalWrite(D3,LOW);
+    digitalWrite(BUILTIN_LED, LOW);
+    ticker.attach(MOTOR_SEC,motorOff);
+    Serial.println("COMPLETE.");
+    fire = false;    
+  } }
+    });
 }
 
 void loop() {
@@ -138,4 +164,3 @@ void turnItOff() {
     Serial.println("COMPLETE.");
     fire = false;    
 }
-
